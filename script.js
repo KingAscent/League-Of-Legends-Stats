@@ -1,4 +1,4 @@
-let key = "RGAPI-00004247-ec7e-4803-919d-433095438f67";
+let key = "RGAPI-846b0e77-b5b9-43d8-b862-6d274ff2165a";
 
 async function fetchSumByName(name){
     // Get summoner information from Riot Games API
@@ -17,9 +17,11 @@ async function fetchChampMastery(id){
     return data;
 }
 
+
 function infoTable(info){
     let headers = ["Champion", "Mastery Level", "Mastery Points"];
-    let table = document.createElement("Table");
+    let table = document.createElement("table");
+    table.style.textAlign = 'center';
     for(let i = 0; i < info.length; i++){
         let data = table.insertRow(i);
         data.insertCell(0).innerHTML = info[i][0];
@@ -32,36 +34,38 @@ function infoTable(info){
         row.insertCell(i).innerHTML = headers[i];
     }
     document.body.append(table);
+    // Keep the table at the center of the page
+    const centerTable = () => {
+        table.style.marginLeft = (window.innerWidth / 2) - (table.clientWidth / 2) + "px";
+    }
+    centerTable();
+    window.addEventListener('resize', centerTable);
+}
+
+function formatedChampionMastery(champMastery, findByKey){
+    champInfo = [];
+    champMastery.forEach(champ => {
+        // Store champ information in the format:
+        // champName | champLevel | champPoints
+        champInfo.push([findByKey(champ.championId)[0], champ.championLevel, champ.championPoints]);
+    });
+    return champInfo;
 }
 
 async function main(){
-/*
-    // Get champions in the format: name | ID
+    // All champion data
     let championData = await fetch("http://ddragon.leagueoflegends.com/cdn/13.1.1/data/en_US/champion.json");
     let champData = await championData.json();
-    let champID = Array(champData.length).fill("empty");
-    // Retrieve each champion's name through their championID, and replace champID with it
-    for(let i = 0; i < champData.length; i++){
-        let champ = champData.data;
-        
-    }
-    console.log(champData.data);
-*/
+    let findByKey = (matchKey) => Object.entries(champData.data).find(([key, value]) => value.key == matchKey);
 
     // Prompt the user for the summoner name
     let name = "Kanan Matsuura";
     // Get the summoner's account information needed for all following methods
     let data = await fetchSumByName(name);
-    console.log(data);
     // Retrieve champion mastery for this summoner
     let champMastery = await fetchChampMastery(data.id);
-    // Create an array to contain all champion info
-    champInfo = [];
-    champMastery.forEach(champ => {
-        // Store champ information in the format:
-        // champID | champLevel | champPoints
-        champInfo.push([champ.championId, champ.championLevel, champ.championPoints]);
-    });
+    // Create an array to contain all champion info for this summoner
+    champInfo = formatedChampionMastery(champMastery, findByKey);
     // Create a table of information from the champ Mastery information
     infoTable(champInfo);
     console.log("We are here");
