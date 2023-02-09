@@ -27,6 +27,8 @@ function infoTable(info){
         data.insertCell(0).innerHTML = info[i][0];
         data.insertCell(1).innerHTML = info[i][1];
         data.insertCell(2).innerHTML = info[i][2];
+        if(i % 2 == 0)
+        data.style.backgroundColor = "#CCCDCD";
     }
     let header = table.createTHead();
     row = header.insertRow();
@@ -47,7 +49,7 @@ function formatedChampionMastery(champMastery, findByKey){
     champMastery.forEach(champ => {
         // Store champ information in the format:
         // champName | champLevel | champPoints
-        champInfo.push([findByKey(champ.championId)[0], champ.championLevel, champ.championPoints]);
+        champInfo.push([findByKey(champ.championId)[1].name, champ.championLevel, champ.championPoints]);
     });
     return champInfo;
 }
@@ -69,6 +71,7 @@ async function main(){
     // Create a table of information from the champ Mastery information
     infoTable(champInfo);
     console.log("We are here");
+    console.log(data);
 }
 
 main();
