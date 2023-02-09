@@ -1,3 +1,4 @@
+//TODO: Line 37: Incorportate total champ mastery value into table
 let key = "RGAPI-846b0e77-b5b9-43d8-b862-6d274ff2165a";
 
 async function fetchSumByName(name){
@@ -17,9 +18,8 @@ async function fetchChampMastery(id){
     return data;
 }
 
-
 function infoTable(info){
-    let headers = ["Champion", "Mastery Level", "Mastery Points"];
+    let headers = ["Champion", "Mastery Level", "Mastery Points", "Chest Obtained", "Last Date Played"];
     let table = document.createElement("table");
     table.style.textAlign = 'center';
     for(let i = 0; i < info.length; i++){
@@ -27,9 +27,14 @@ function infoTable(info){
         data.insertCell(0).innerHTML = info[i][0];
         data.insertCell(1).innerHTML = info[i][1];
         data.insertCell(2).innerHTML = info[i][2];
+        data.insertCell(3).innerHTML = info[i][3];
+        data.insertCell(4).innerHTML = info[i][4];
         if(i % 2 == 0)
         data.style.backgroundColor = "#CCCDCD";
     }
+    // Insert the player's total information
+    let total = table.insertRow();
+    total.insertCell(0).innerHTML = "TOTAL";
     let header = table.createTHead();
     row = header.insertRow();
     for(let i = 0; i < headers.length; i++){
@@ -47,9 +52,16 @@ function infoTable(info){
 function formatedChampionMastery(champMastery, findByKey){
     champInfo = [];
     champMastery.forEach(champ => {
+        champName = findByKey(champ.championId)[1].name;
+        champLevel = champ.championLevel;
+        champPoints = champ.championPoints.toLocaleString("en-US");
+        chestObtained = champ.chestGranted;
+        lastPlayed = new Date(champ.lastPlayTime).toString().substring(4, 15);
+        // Format the lastPlayed substring to an even more readable string
+        lastPlayed = lastPlayed.substring(4, 7) + lastPlayed.substring(0, 4) + lastPlayed.substring(6, 11);
         // Store champ information in the format:
-        // champName | champLevel | champPoints
-        champInfo.push([findByKey(champ.championId)[1].name, champ.championLevel, champ.championPoints]);
+        // champName | champLevel | champPoints | Chest Obtained | Last Time Champ Was Played
+        champInfo.push([champName, champLevel, champPoints, chestObtained, lastPlayed]);
     });
     return champInfo;
 }
