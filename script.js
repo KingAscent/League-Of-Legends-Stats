@@ -1,5 +1,5 @@
 //TODO: Line 37: Incorportate total champ mastery value into table
-let key = "RGAPI-846b0e77-b5b9-43d8-b862-6d274ff2165a";
+let key = "RGAPI-071df365-6f5a-42fa-a788-0dbc410886b2";
 
 async function fetchSumByName(name){
     // Get summoner information from Riot Games API
@@ -18,7 +18,7 @@ async function fetchChampMastery(id){
     return data;
 }
 
-function infoTable(info){
+function infoTable(info, totalMastery){
     let headers = ["Champion", "Mastery Level", "Mastery Points", "Chest Obtained", "Last Date Played"];
     let table = document.createElement("table");
     table.style.textAlign = 'center';
@@ -29,14 +29,18 @@ function infoTable(info){
         data.insertCell(2).innerHTML = info[i][2];
         data.insertCell(3).innerHTML = info[i][3];
         data.insertCell(4).innerHTML = info[i][4];
-        if(i % 2 == 0)
+        if(i % 2 != 0)
         data.style.backgroundColor = "#CCCDCD";
     }
-    // Insert the player's total information
+    // Insert the player's total mastery information
     let total = table.insertRow();
     total.insertCell(0).innerHTML = "TOTAL";
+    if(info.length % 2 != 0)
+        total.style.backgroundColor = "#CCCDCD";
+    total.insertCell(1).innerHTML = totalMastery;
     let header = table.createTHead();
     row = header.insertRow();
+    row.style.backgroundColor = "#CCCDCD";
     for(let i = 0; i < headers.length; i++){
         row.insertCell(i).innerHTML = headers[i];
     }
@@ -78,10 +82,12 @@ async function main(){
     let data = await fetchSumByName(name);
     // Retrieve champion mastery for this summoner
     let champMastery = await fetchChampMastery(data.id);
+    let fetchTotalMastery = await fetch("https://na1.api.riotgames.com/lol/champion-mastery/v4/scores/by-summoner/" + data.id + "?api_key=" + key);
+    let totalMastery = await fetchTotalMastery.json();
     // Create an array to contain all champion info for this summoner
     champInfo = formatedChampionMastery(champMastery, findByKey);
     // Create a table of information from the champ Mastery information
-    infoTable(champInfo);
+    infoTable(champInfo, totalMastery);
     console.log("We are here");
     console.log(data);
 }
