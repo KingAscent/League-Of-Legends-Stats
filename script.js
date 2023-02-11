@@ -1,12 +1,22 @@
 //TODO: Line 37: Incorportate total champ mastery value into table
 let key = "RGAPI-071df365-6f5a-42fa-a788-0dbc410886b2";
 
-async function fetchSumByName(name){
+async function fetchSumByName(){
     // Get summoner information from Riot Games API
-    let url = "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + name + "?api_key=" + key;
-    let res = await fetch(url)
-    // Turn the response into a json and return it
-    let data = await res.json();
+    let data;
+    let name = prompt("Please input a summoner name.\nExample: Sayo");
+    // Trap the user if they do not input a valid summoner name
+    let found = false;
+    while(!found){
+        let url = "https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/" + name + "?api_key=" + key;
+        try{
+            let res = await fetch(url);
+            found = true;
+            data = res.json();
+        }catch{
+            name = prompt("Name not found?");
+        }
+    }
     return data;
 }
 
@@ -70,6 +80,7 @@ function formatedChampionMastery(champMastery, findByKey){
     return champInfo;
 }
 
+
 async function main(){
     // All champion data
     let championData = await fetch("http://ddragon.leagueoflegends.com/cdn/13.1.1/data/en_US/champion.json");
@@ -77,9 +88,9 @@ async function main(){
     let findByKey = (matchKey) => Object.entries(champData.data).find(([key, value]) => value.key == matchKey);
 
     // Prompt the user for the summoner name
-    let name = "Kanan Matsuura";
+    //let name = "Kanan Matsuura";
     // Get the summoner's account information needed for all following methods
-    let data = await fetchSumByName(name);
+    let data = await fetchSumByName();
     // Retrieve champion mastery for this summoner
     let champMastery = await fetchChampMastery(data.id);
     let fetchTotalMastery = await fetch("https://na1.api.riotgames.com/lol/champion-mastery/v4/scores/by-summoner/" + data.id + "?api_key=" + key);
