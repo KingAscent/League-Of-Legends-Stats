@@ -1,3 +1,7 @@
 body{
+    background: rgb(0,0,0);
+    background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(17,0,157,1) 100%);
+    background-attachment: fixed; /* Stop background from scrolling */
+    color: white;
     text-align: center;
 }
