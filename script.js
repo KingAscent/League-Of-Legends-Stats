@@ -3,7 +3,7 @@ let key = "RGAPI-071df365-6f5a-42fa-a788-0dbc410886b2";
 async function fetchSumByName(){
     // Get summoner information from Riot Games API
     let data;
-    let name = prompt("Please enter a summoner name.\nExample: Sayo");
+    let name = prompt("Please enter a summoner name.\nExample: Sayo, Gardakan72");
     // Trap the user if they do not input a valid summoner name
     let found = false;
     while(!found || name.toLowerCase() == "null"){
@@ -13,7 +13,7 @@ async function fetchSumByName(){
             found = true;
             data = res.json();
         }catch{
-            name = prompt("Summoner name not found. Please enter a valid summoner name.\nExample: Sayo");
+            name = prompt("Summoner name not found. Please enter a valid summoner name.\nExample: Sayo, Gardakan72");
         }
     }
     return data;
@@ -28,36 +28,61 @@ async function fetchChampMastery(id){
 }
 
 function infoTable(info, totalMastery){
-    let headers = ["Champion", "Mastery Level", "Mastery Points", "Chest Obtained", "Last Date Played", "Mastery Progress"];
-    let table = document.createElement("table");
+    let headers = ["", "Champion", "Mastery Level", "Mastery Points", "Chest Obtained", "Last Date Played", "Mastery Progress"];
+    let table = document.createElement("Table");
     table.style.textAlign = 'center';
+    table.style.border = '1px solid black';
+    table.style.backgroundColor = '#13008B'; // Table background
+    table.style.color = 'white'; // Text color
+    table.cellPadding = '10 px';
+    let totalMasteryPoints = 0;
+    let totalChestsObtained = 0;
     for(let i = 0; i < info.length; i++){
         let data = table.insertRow(i);
-        data.insertCell(0).innerHTML = info[i][0]; // Champion
-        data.insertCell(1).innerHTML = info[i][1]; // Mastery Level
-        data.insertCell(2).innerHTML = info[i][2]; // Mastery Points
-        data.insertCell(3).innerHTML = info[i][3]; // Chest Obtained
-        data.insertCell(4).innerHTML = info[i][4]; // Last Date Played
-        data.insertCell(5).innerHTML = info[i][5]; // Mastery Progress
+        let champPortait = new Image();
+        champPortait.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/" + info[i][6] + ".png";
+        champPortait.style.width = "35%";
+        champPortait.onclick = function(){
+            // Handle champions with strange names
+            champLink = info[i][0].replace(" ", "-").replace("'", "-").replace("-& Willump", "").replace("-Glasc", "").replace(".", "");
+            console.log(champLink);
+            // Open official Riot Games champion page in a new tab
+            window.open("https://www.leagueoflegends.com/en-us/champions/" + champLink + "/", "_blank");
+        }
+        data.insertCell(0).append(champPortait); // Champion Portait
+        data.insertCell(1).innerHTML = info[i][0]; // Champion Name
+        data.insertCell(2).innerHTML = info[i][1]; // Mastery Level
+        data.insertCell(3).innerHTML = info[i][2].toLocaleString("en-US"); // Mastery Points
+        data.insertCell(4).innerHTML = info[i][3]; // Chest Obtained
+        data.insertCell(5).innerHTML = info[i][4]; // Last Date Played
+        data.insertCell(6).innerHTML = info[i][5]; // Mastery Progress
+        totalMasteryPoints += info[i][2];
+        if(info[i][3] === "Earned")
+            totalChestsObtained++;
         if(i % 2 != 0)
-        data.style.backgroundColor = "#CCCDCD";
+            data.style.backgroundColor = '#00056C';
     }
     // Insert the player's total mastery information
     let total = table.insertRow();
-    total.insertCell(0).innerHTML = "TOTAL";
+    total.insertCell(0).innerHTML;
+    total.insertCell(1).innerHTML = "TOTALS";
+    total.insertCell(2).innerHTML = "Level " + totalMastery;
+    total.insertCell(3).innerHTML = totalMasteryPoints.toLocaleString("en-US") + " Points";
+    total.insertCell(4).innerHTML = totalChestsObtained + " Chests Earned";
+    total.insertCell(5).innerHTML;
+    total.insertCell(6).innerHTML;
     if(info.length % 2 != 0)
-        total.style.backgroundColor = "#CCCDCD";
-    total.insertCell(1).innerHTML = totalMastery;
+        total.style.backgroundColor = "#00056C";
     let header = table.createTHead();
     row = header.insertRow();
-    row.style.backgroundColor = "#CCCDCD";
+    row.style.backgroundColor = "#00056C";
     for(let i = 0; i < headers.length; i++){
         row.insertCell(i).innerHTML = headers[i];
     }
     document.body.append(table);
     // Keep the table at the center of the page
-    const centerTable = () => {
-        table.style.marginLeft = (window.innerWidth / 2) - (table.clientWidth / 2) + "px";
+    let centerTable = () => {
+        table.style.margin = "auto";
     }
     centerTable();
     window.addEventListener('resize', centerTable);
@@ -68,7 +93,7 @@ function formatedChampionMastery(champMastery, findByKey){
     champMastery.forEach(champ => {
         champName = findByKey(champ.championId)[1].name;
         champLevel = champ.championLevel;
-        champPoints = champ.championPoints.toLocaleString("en-US");
+        champPoints = champ.championPoints;
         chestObtained = champ.chestGranted;
         if(chestObtained){
             chestObtained = "Earned";
@@ -88,8 +113,9 @@ function formatedChampionMastery(champMastery, findByKey){
         else
             champProgress = "Points until next level: " + champ.championPointsUntilNextLevel;
         // Store champ information in the format:
-        // champName | champLevel | champPoints | Chest Obtained | Last Time Champ Was Played | Mastery Progress
-        champInfo.push([champName, champLevel, champPoints, chestObtained, lastPlayed, champProgress]);
+        // champName | champLevel | champPoints | Chest Obtained | Last Time Champ Was Played | Mastery Progress | champion ID
+        champInfo.push([champName, champLevel, champPoints, chestObtained, lastPlayed, champProgress, champ.championId]);
+        // Store champion Id so that it may be used to locate champion portait
     });
     return champInfo;
 }
