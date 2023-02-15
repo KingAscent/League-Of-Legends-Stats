@@ -16,6 +16,7 @@ async function fetchSumByName(){
             name = prompt("Summoner name not found. Please enter a valid summoner name.\nExample: Sayo, Gardakan72");
         }
     }
+    document.getElementById("summonerName").innerHTML = "Current Summoner: " + name;
     return data;
 }
 
