@@ -1,9 +1,13 @@
 let key = "RGAPI-071df365-6f5a-42fa-a788-0dbc410886b2";
+let tableMade = false;
 
 async function fetchSumByName(){
     // Get summoner information from Riot Games API
     let data;
-    let name = prompt("Please enter a summoner name.\nExample: Sayo, Gardakan72");
+    //let name = prompt("Please enter a summoner name.\nExample: Sayo, Gardakan72");
+
+    let name = document.getElementById("searchName").value;
+
     // Trap the user if they do not input a valid summoner name
     let found = false;
     while(!found || name.toLowerCase() == "null"){
@@ -31,6 +35,7 @@ async function fetchChampMastery(id){
 function infoTable(info, totalMastery){
     let headers = ["", "Champion", "Mastery Level", "Mastery Points", "Chest Obtained", "Last Date Played", "Mastery Progress"];
     let table = document.createElement("Table");
+    table.id = "dataTable";
     table.style.textAlign = 'center';
     table.style.border = '1px solid black';
     table.style.backgroundColor = '#13008B'; // Table background
@@ -80,7 +85,7 @@ function infoTable(info, totalMastery){
     for(let i = 0; i < headers.length; i++){
         row.insertCell(i).innerHTML = headers[i];
     }
-    document.body.append(table);
+    document.body.append(table); // Display the data
     // Keep the table at the center of the page
     let centerTable = () => {
         table.style.margin = "auto";
@@ -121,7 +126,6 @@ function formatedChampionMastery(champMastery, findByKey){
     return champInfo;
 }
 
-
 async function main(){
     // All champion data
     let championData = await fetch("http://ddragon.leagueoflegends.com/cdn/13.1.1/data/en_US/champion.json");
@@ -137,9 +141,20 @@ async function main(){
     // Create an array to contain all champion info for this summoner
     champInfo = formatedChampionMastery(champMastery, findByKey);
     // Create a table of information from the champ Mastery information
-    infoTable(champInfo, totalMastery);
+    if(!tableMade)
+        infoTable(champInfo, totalMastery);
+    tableMade = true;
     console.log(data);
     console.log("We've reached the end");
 }
 
-main();
+function newSearch(){
+    if(tableMade){
+        let data = document.getElementById("dataTable");
+        data.remove();
+        tableMade = false;
+    }
+    main();
+}
+
+//main();
