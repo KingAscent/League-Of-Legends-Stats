@@ -157,4 +157,11 @@ function newSearch(){
     main();
 }
 
-//main();
+// If the user presses enter after inputting a Summoner Name
+let input = document.getElementById("searchName");
+input.addEventListener("keypress", function(event){
+    if(event.key === "Enter"){
+        event.preventDefault();
+        document.getElementById("search").click();
+    }
+})
