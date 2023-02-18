@@ -1,5 +1,7 @@
 let key = "RGAPI-071df365-6f5a-42fa-a788-0dbc410886b2";
 let tableMade = false;
+let playerSearch = false;
+let liveGame = false;
 
 async function fetchSumByName(){
     // Get summoner information from Riot Games API
@@ -32,7 +34,7 @@ async function fetchChampMastery(id){
     return data;
 }
 
-function infoTable(info, totalMastery){
+function masteryInfoTable(info, totalMastery){
     let headers = ["", "Champion", "Mastery Level", "Mastery Points", "Chest Obtained", "Last Date Played", "Mastery Progress"];
     let table = document.createElement("Table");
     table.id = "dataTable";
@@ -45,16 +47,7 @@ function infoTable(info, totalMastery){
     let totalChestsObtained = 0;
     for(let i = 0; i < info.length; i++){
         let data = table.insertRow(i);
-        let champPortait = new Image();
-        champPortait.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/" + info[i][6] + ".png";
-        champPortait.style.width = "35%";
-        champPortait.onclick = function(){
-            // Handle champions with strange names
-            champLink = info[i][0].replace(" ", "-").replace("'", "-").replace("-& Willump", "").replace("-Glasc", "").replace(".", "");
-            console.log(champLink);
-            // Open official Riot Games champion page in a new tab
-            window.open("https://www.leagueoflegends.com/en-us/champions/" + champLink + "/", "_blank");
-        }
+        let champPortait = champIcons(info[i][0], info[i][6]);
         data.insertCell(0).append(champPortait); // Champion Portait
         data.insertCell(1).innerHTML = info[i][0]; // Champion Name
         data.insertCell(2).innerHTML = info[i][1]; // Mastery Level
@@ -126,14 +119,95 @@ function formatedChampionMastery(champMastery, findByKey){
     return champInfo;
 }
 
-async function main(){
-    // All champion data
-    let championData = await fetch("http://ddragon.leagueoflegends.com/cdn/13.1.1/data/en_US/champion.json");
-    let champData = await championData.json();
-    let findByKey = (matchKey) => Object.entries(champData.data).find(([key, value]) => value.key == matchKey);
+function champIcons(champName, champId){
+    let champPortait = new Image();
+    champPortait.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/" + champId + ".png";
+    champPortait.style.width = "35%";
+    champPortait.onclick = function(){
+        // Handle champions with strange names
+        champLink = champName.replace(" ", "-").replace("'", "-").replace("-& Willump", "").replace("-Glasc", "").replace(".", "");
+        console.log(champLink);
+        // Open official Riot Games champion page in a new tab
+        window.open("https://www.leagueoflegends.com/en-us/champions/" + champLink + "/", "_blank");
+    }
+    return champPortait;
+}
 
-    // Get the summoner's account information needed for all following methods
-    let data = await fetchSumByName();
+function liveGameInfoTable(gameMode, gameId, teamOne, teamTwo){
+    // Team array format
+    // SummonerName | Summoner Id | Champion Name | Champion ID
+    let headers = ["Summoner", "Champion", "", "", "Champion", "Summoner"];
+    let table = document.createElement("Table");
+    table.id = "dataTable";
+    table.style.textAlign = 'center';
+    table.style.border = '1px solid black';
+    table.style.backgroundColor = '#13008B'; // Table background
+    table.style.color = 'white'; // Text color
+    table.cellPadding = '10 px';
+    for(let i = 0; i < teamOne.length; i++){
+        let data = table.insertRow(i);
+        champ1 = champIcons(teamOne[i][2], teamOne[i][3]);
+        champ2 = champIcons(teamTwo[i][2], teamTwo[i][3]);
+
+        data.insertCell(0).innerHTML = teamOne[i][0]; // Summoner Name
+        data.insertCell(1).append(champ1); // Champion Portait
+        data.insertCell(2).innerHTML = "";
+        data.insertCell(3).innerHTML = "";
+        data.insertCell(4).append(champ2) // Champion Portait
+        data.insertCell(5).innerHTML = teamTwo[i][0]; // Summoner Name
+        if(i % 2 != 0)
+            data.style.backgroundColor = '#00056C';
+    }
+
+    let header = table.createTHead();
+    row = header.insertRow();
+    row.style.backgroundColor = "#00056C";
+    for(let i = 0; i < headers.length; i++){
+        row.insertCell(i).innerHTML = headers[i];
+    }
+    document.body.append(table); // Display the data
+    // Keep the table at the center of the page
+    let centerTable = () => {
+        table.style.margin = "auto";
+    }
+    centerTable();
+    window.addEventListener('resize', centerTable);
+    console.log("Filler");
+}
+
+function liveGameDetails(findByKey, gameData){
+    // Sort game data information
+    gameId = gameData.gameId;
+    gameMode = gameData.gameMode;
+    let teamOne = []; // Blue Team
+    let teamTwo = []; // Red Team
+    // Store team data in the format:
+    // SummonerName | Summoner Id | Champion Name | Champion ID
+    gameData.participants.forEach(player => {
+        if(player.teamId === 100)
+            teamOne.push([player.summonerName, player.summonerId, findByKey(player.championId)[1].name, player.championId]);
+        else
+            teamTwo.push([player.summonerName, player.summonerId, findByKey(player.championId)[1].name, player.championId]);
+    });
+    console.log(teamOne);
+    liveGameInfoTable(gameMode, gameId, teamOne, teamTwo);
+}
+
+async function checkLiveGame(findByKey, data){
+    let url = "https://na1.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/" + data.id + "?api_key=" + key;
+    let gameData;
+    let playing = false;
+    try{
+        let live = await fetch(url);
+        gameData= await live.json();
+        liveGameDetails(findByKey, gameData);
+    }catch{
+        playing = false;
+        //alert("Player is not currently in a match right now.");
+    }
+}
+
+async function searchPlayer(findByKey, data){
     // Retrieve champion mastery for this summoner
     let champMastery = await fetchChampMastery(data.id);
     let fetchTotalMastery = await fetch("https://na1.api.riotgames.com/lol/champion-mastery/v4/scores/by-summoner/" + data.id + "?api_key=" + key);
@@ -142,8 +216,24 @@ async function main(){
     champInfo = formatedChampionMastery(champMastery, findByKey);
     // Create a table of information from the champ Mastery information
     if(!tableMade)
-        infoTable(champInfo, totalMastery);
+        masteryInfoTable(champInfo, totalMastery);
     tableMade = true;
+}
+
+async function main(){
+    // All champion data
+    let championData = await fetch("http://ddragon.leagueoflegends.com/cdn/13.1.1/data/en_US/champion.json");
+    let champData = await championData.json();
+    let findByKey = (matchKey) => Object.entries(champData.data).find(([key, value]) => value.key == matchKey);
+
+    // Get the summoner's account information needed for all following methods
+    let data = await fetchSumByName();
+
+    // Get general summoner mastery information
+    if(playerSearch)
+        searchPlayer(findByKey, data);
+    if(liveGame)
+        checkLiveGame(findByKey, data);
     console.log(data);
     console.log("We've reached the end");
 }
@@ -154,8 +244,23 @@ function newSearch(){
         data.remove();
         tableMade = false;
     }
+    playerSearch = true;
+    liveGame = false;
     main();
 }
+
+function newLiveGame(){
+    if(tableMade){
+        let data = document.getElementById("dataTable");
+        data.remove();
+        tableMade = false;
+    }
+    playerSearch = false;
+    liveGame = true;
+    main();
+}
+
+
 
 // If the user presses enter after inputting a Summoner Name
 let input = document.getElementById("searchName");
