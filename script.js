@@ -34,15 +34,7 @@ async function fetchChampMastery(id){
     return data;
 }
 
-function masteryInfoTable(info, totalMastery){
-    let headers = ["", "Champion", "Mastery Level", "Mastery Points", "Chest Obtained", "Last Date Played", "Mastery Progress"];
-    let table = document.createElement("Table");
-    table.id = "dataTable";
-    table.style.textAlign = 'center';
-    table.style.border = '1px solid black';
-    table.style.backgroundColor = '#13008B'; // Table background
-    table.style.color = 'white'; // Text color
-    table.cellPadding = '10 px';
+function masteryInfo(table, info, totalMastery){
     let totalMasteryPoints = 0;
     let totalChestsObtained = 0;
     for(let i = 0; i < info.length; i++){
@@ -72,12 +64,30 @@ function masteryInfoTable(info, totalMastery){
     total.insertCell(6).innerHTML;
     if(info.length % 2 != 0)
         total.style.backgroundColor = "#00056C";
+}
+
+function masteryInfoHeaders(table){
+    let headers = ["", "Champion", "Mastery Level", "Mastery Points", "Chest Obtained", "Last Date Played", "Mastery Progress"];
     let header = table.createTHead();
     row = header.insertRow();
     row.style.backgroundColor = "#00056C";
     for(let i = 0; i < headers.length; i++){
         row.insertCell(i).innerHTML = headers[i];
     }
+}
+
+function masteryInfoTable(info, totalMastery){
+    let table = document.createElement("Table");
+    table.id = "dataTable";
+    table.style.textAlign = 'center';
+    table.style.border = '1px solid black';
+    table.style.backgroundColor = '#13008B'; // Table background
+    table.style.color = 'white'; // Text color
+    table.cellPadding = '10 px';
+
+    masteryInfo(table, info, totalMastery);
+    masteryInfoHeaders(table);
+
     document.body.append(table); // Display the data
     // Keep the table at the center of the page
     let centerTable = () => {
@@ -126,7 +136,6 @@ function champIcons(champName, champId){
     champPortait.onclick = function(){
         // Handle champions with strange names
         champLink = champName.replace(" ", "-").replace("'", "-").replace("-& Willump", "").replace("-Glasc", "").replace(".", "");
-        console.log(champLink);
         // Open official Riot Games champion page in a new tab
         window.open("https://www.leagueoflegends.com/en-us/champions/" + champLink + "/", "_blank");
     }
@@ -142,20 +151,7 @@ function timeSinceStart(gameStart){
     return min + ":" + sec;
 }
 
-function liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans){
-    // Team array format
-    // SummonerName | Summoner Id | Champion Name | Champion ID
-    // Banned champ array format
-    // Champion Name | Champion ID | Turn Pick
-    let headers = ["Bans", "Pick Order", "Summoner", "Champion", "Champion", "Summoner", "Pick Order", "Bans"];
-    let table = document.createElement("Table");
-    table.id = "dataTable";
-    table.style.textAlign = 'center';
-    table.style.border = '1px solid black';
-    table.style.backgroundColor = '#13008B'; // Table background
-    table.style.color = 'white'; // Text color
-    table.cellPadding = '10 px';
-    // Display game time
+function liveGameStats(table, gameStart, gameMode){
     let gameStats = table.insertRow();
     gameStats.insertCell(0).innerHTML = "";
     gameStats.insertCell(1).innerHTML = "Time:";
@@ -164,6 +160,9 @@ function liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOn
     gameStats.insertCell(4).innerHTML = "";
     gameStats.insertCell(5).innerHTML = "Mode:";
     gameStats.insertCell(6).innerHTML = gameMode;
+}
+
+function liveGameInfo(table, teamOne, teamTwo, teamOneBans, teamTwoBans){
     for(let i = 0; i < teamOne.length; i++){
         let data = table.insertRow(i);
         champ1 = champIcons(teamOne[i][2], teamOne[i][3]);
@@ -181,6 +180,37 @@ function liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOn
         if(i % 2 != 0)
             data.style.backgroundColor = '#00056C';
     }
+}
+
+function liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans){
+    // Team array format
+    // SummonerName | Summoner Id | Champion Name | Champion ID
+    // Banned champ array format
+    // Champion Name | Champion ID | Turn Pick
+
+    let table = document.createElement("Table");
+    table.id = "dataTable";
+    table.style.textAlign = 'center';
+    table.style.border = '1px solid black';
+    table.style.backgroundColor = '#13008B'; // Table background
+    table.style.color = 'white'; // Text color
+    table.cellPadding = '10 px';
+    // Display game stats
+    liveGameStats(table, gameStart, gameMode);
+    liveGameInfo(table, teamOne, teamTwo, teamOneBans, teamTwoBans);
+    liveGameHeaders(table, gameId);
+
+    document.body.append(table); // Display the data
+    // Keep the table at the center of the page
+    let centerTable = () => {
+        table.style.margin = "auto";
+    }
+    centerTable();
+    window.addEventListener('resize', centerTable);
+}
+
+function liveGameHeaders(table, gameId){
+    let headers = ["Bans", "Pick Order", "Summoner", "Champion", "Champion", "Summoner", "Pick Order", "Bans"];
     let teamHeader = table.createTHead();
     teams = teamHeader.insertRow();
     //teams.style.background = "#ffbb00";
@@ -199,13 +229,6 @@ function liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOn
     for(let i = 0; i < headers.length; i++){
         row.insertCell(i).innerHTML = headers[i];
     }
-    document.body.append(table); // Display the data
-    // Keep the table at the center of the page
-    let centerTable = () => {
-        table.style.margin = "auto";
-    }
-    centerTable();
-    window.addEventListener('resize', centerTable);
 }
 
 async function getRanks(id){
@@ -244,7 +267,6 @@ function liveGameDetails(findByKey, gameData){
         else
             teamTwoBans.push([findByKey(champ.championId)[1].name, champ.championId, champ.pickTurn]);
     });
-    console.log(teamOneBans);
     if(!tableMade)
         liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans);
     tableMade = true; // There is a data table present that needs to be cleared before loading the next summoner info
@@ -291,7 +313,6 @@ async function main(){
         searchPlayer(findByKey, data);
     if(liveGame)
         checkLiveGame(findByKey, data);
-    console.log(data);
     console.log("We've reached the end");
 }
 
