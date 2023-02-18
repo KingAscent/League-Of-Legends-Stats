@@ -133,10 +133,21 @@ function champIcons(champName, champId){
     return champPortait;
 }
 
-function liveGameInfoTable(gameMode, gameId, teamOne, teamTwo){
+function timeSinceStart(gameStart){
+    let timeMs = Date.now() - gameStart;
+    let min = Math.floor(timeMs / 60000)
+    let sec = ((timeMs % 60000) / 1000).toFixed(0);
+    if(sec < 10)
+        return min + ":0" + sec;
+    return min + ":" + sec;
+}
+
+function liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans){
     // Team array format
     // SummonerName | Summoner Id | Champion Name | Champion ID
-    let headers = ["Summoner", "Champion", "", "", "Champion", "Summoner"];
+    // Banned champ array format
+    // Champion Name | Champion ID | Turn Pick
+    let headers = ["Bans", "Pick Order", "Summoner", "Champion", "Champion", "Summoner", "Pick Order", "Bans"];
     let table = document.createElement("Table");
     table.id = "dataTable";
     table.style.textAlign = 'center';
@@ -144,21 +155,44 @@ function liveGameInfoTable(gameMode, gameId, teamOne, teamTwo){
     table.style.backgroundColor = '#13008B'; // Table background
     table.style.color = 'white'; // Text color
     table.cellPadding = '10 px';
+    // Display game time
+    let gameStats = table.insertRow();
+    gameStats.insertCell(0).innerHTML = "";
+    gameStats.insertCell(1).innerHTML = "Time:";
+    gameStats.insertCell(2).innerHTML = timeSinceStart(gameStart);
+    gameStats.insertCell(3).innerHTML = "";
+    gameStats.insertCell(4).innerHTML = "";
+    gameStats.insertCell(5).innerHTML = "Mode:";
+    gameStats.insertCell(6).innerHTML = gameMode;
     for(let i = 0; i < teamOne.length; i++){
         let data = table.insertRow(i);
         champ1 = champIcons(teamOne[i][2], teamOne[i][3]);
         champ2 = champIcons(teamTwo[i][2], teamTwo[i][3]);
-
-        data.insertCell(0).innerHTML = teamOne[i][0]; // Summoner Name
-        data.insertCell(1).append(champ1); // Champion Portait
-        data.insertCell(2).innerHTML = "";
-        data.insertCell(3).innerHTML = "";
+        bannedChamp1 = champIcons(teamOneBans[i][0], teamOneBans[i][1]);
+        bannedChamp2 = champIcons(teamTwoBans[i][0], teamTwoBans[i][1]);
+        data.insertCell(0).append(bannedChamp1);
+        data.insertCell(1).innerHTML = teamOneBans[i][2]; // Team One Pick
+        data.insertCell(2).innerHTML = teamOne[i][0]; // Summoner Name
+        data.insertCell(3).append(champ1); // Champion Portait
         data.insertCell(4).append(champ2) // Champion Portait
         data.insertCell(5).innerHTML = teamTwo[i][0]; // Summoner Name
+        data.insertCell(6).innerHTML = teamTwoBans[i][2]; // Team Two Pick
+        data.insertCell(7).append(bannedChamp2);
         if(i % 2 != 0)
             data.style.backgroundColor = '#00056C';
     }
-
+    let teamHeader = table.createTHead();
+    teams = teamHeader.insertRow();
+    //teams.style.background = "#ffbb00";
+    teams.insertCell(0).innerHTML = "Game ID:";
+    teams.insertCell(1).innerHTML = gameId;
+    teams.insertCell(2).innerHTML = "TEAM 1";
+    teams.insertCell(3).innerHTML = "";
+    teams.insertCell(4).innerHTML = "";
+    teams.insertCell(5).innerHTML = "TEAM 2";
+    teams.insertCell(6).innerHTML = "";
+    teams.insertCell(7).innerHTML = "";
+    teams.insertCell(8).innerHTML = "";
     let header = table.createTHead();
     row = header.insertRow();
     row.style.backgroundColor = "#00056C";
@@ -172,15 +206,28 @@ function liveGameInfoTable(gameMode, gameId, teamOne, teamTwo){
     }
     centerTable();
     window.addEventListener('resize', centerTable);
-    console.log("Filler");
+}
+
+async function getRanks(id){
+    let url = "https://na1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + id + "?api_key=" + key;
+    try{
+        let rankData = await fetch(url);
+        let rank = await rankData.json();
+        return rank.tier;
+    }catch{
+        return "Unranked";
+    }
 }
 
 function liveGameDetails(findByKey, gameData){
     // Sort game data information
     gameId = gameData.gameId;
     gameMode = gameData.gameMode;
+    gameStart = gameData.gameStartTime;
     let teamOne = []; // Blue Team
     let teamTwo = []; // Red Team
+    let teamOneBans = [];
+    let teamTwoBans = [];
     // Store team data in the format:
     // SummonerName | Summoner Id | Champion Name | Champion ID
     gameData.participants.forEach(player => {
@@ -189,8 +236,18 @@ function liveGameDetails(findByKey, gameData){
         else
             teamTwo.push([player.summonerName, player.summonerId, findByKey(player.championId)[1].name, player.championId]);
     });
-    console.log(teamOne);
-    liveGameInfoTable(gameMode, gameId, teamOne, teamTwo);
+    // Store banned champ data in the format:
+    // Champion Name | Champion ID | Turn Pick
+    gameData.bannedChampions.forEach(champ => {
+        if(champ.teamId === 100)
+            teamOneBans.push([findByKey(champ.championId)[1].name, champ.championId, champ.pickTurn]);
+        else
+            teamTwoBans.push([findByKey(champ.championId)[1].name, champ.championId, champ.pickTurn]);
+    });
+    console.log(teamOneBans);
+    if(!tableMade)
+        liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans);
+    tableMade = true; // There is a data table present that needs to be cleared before loading the next summoner info
 }
 
 async function checkLiveGame(findByKey, data){
@@ -203,7 +260,7 @@ async function checkLiveGame(findByKey, data){
         liveGameDetails(findByKey, gameData);
     }catch{
         playing = false;
-        //alert("Player is not currently in a match right now.");
+        alert("Player is not currently in a match right now.");
     }
 }
 
@@ -217,7 +274,7 @@ async function searchPlayer(findByKey, data){
     // Create a table of information from the champ Mastery information
     if(!tableMade)
         masteryInfoTable(champInfo, totalMastery);
-    tableMade = true;
+    tableMade = true; // There is a data table present that needs to be cleared before loading the next summoner info
 }
 
 async function main(){
@@ -259,8 +316,6 @@ function newLiveGame(){
     liveGame = true;
     main();
 }
-
-
 
 // If the user presses enter after inputting a Summoner Name
 let input = document.getElementById("searchName");
