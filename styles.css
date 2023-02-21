@@ -5,3 +5,11 @@ body{
     color: white;
     text-align: center;
 }
+
+table{
+    text-align: center;
+    border: 1px solid black;
+    background-color: #13008B;
+    /*text-decoration: white;*/
+    border-spacing: 0px;
+}

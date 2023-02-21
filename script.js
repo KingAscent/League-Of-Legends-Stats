@@ -2,14 +2,15 @@ let key = "RGAPI-071df365-6f5a-42fa-a788-0dbc410886b2";
 let tableMade = false;
 let playerSearch = false;
 let liveGame = false;
+let version = "http://ddragon.leagueoflegends.com/cdn/13.1.1/data/en_US/champion.json";
 
+// NAME: fetchSumByName()
+// PURPOSE: Access Riot Games API and retrieve a summoner name's information
+// RETURN: json data file with the summoner name's account information
 async function fetchSumByName(){
-    // Get summoner information from Riot Games API
     let data;
-    //let name = prompt("Please enter a summoner name.\nExample: Sayo, Gardakan72");
-
+    // Get summoner name from index.html input
     let name = document.getElementById("searchName").value;
-
     // Trap the user if they do not input a valid summoner name
     let found = false;
     while(!found || name.toLowerCase() == "null"){
@@ -24,17 +25,28 @@ async function fetchSumByName(){
     }
     document.getElementById("summonerName").innerHTML = "Current Summoner: " + name;
     return data;
-}
+} // End fetchSumByName()
 
+// NAME: fetchChampMastery(id)
+// PURPOSE: Access Riot Games API and retrieve a summoner name's champion mastery information
+// PARAMETERS: id - The summoner name's encrypted user id
+// RETURN: json data file with the summoner name's champion mastery information
 async function fetchChampMastery(id){
     let url = "https://na1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/" + id + "?api_key=" + key;
     let res = await fetch(url);
     // Turn the response into a json and return it
     let data = await res.json();
     return data;
-}
+} // End fetchChampMastery(id)
 
-function masteryInfo(table, info, totalMastery){
+// NAME: masteryInfo(table, info, totalMastery)
+// PURPOSE: Build the table that would display a summoner's champion mastery data
+//         inclusive of mastery points, chests earned, and last date played
+// PARAMETERS: table - The data table that would display the information
+//             info - A multidimensional array that contains the summoner's
+//                   mastery data, organized for the table to display
+//             totalMasteryLevel - The total mastery level of the summoner
+function masteryInfo(table, info, totalMasteryLevel){
     let totalMasteryPoints = 0;
     let totalChestsObtained = 0;
     for(let i = 0; i < info.length; i++){
@@ -57,15 +69,18 @@ function masteryInfo(table, info, totalMastery){
     let total = table.insertRow();
     total.insertCell(0).innerHTML;
     total.insertCell(1).innerHTML = "TOTALS";
-    total.insertCell(2).innerHTML = "Level " + totalMastery;
+    total.insertCell(2).innerHTML = "Level " + totalMasteryLevel;
     total.insertCell(3).innerHTML = totalMasteryPoints.toLocaleString("en-US") + " Points";
     total.insertCell(4).innerHTML = totalChestsObtained + " Chests Earned";
     total.insertCell(5).innerHTML;
     total.insertCell(6).innerHTML;
     if(info.length % 2 != 0)
         total.style.backgroundColor = "#00056C";
-}
+} // End masteryInfo(table, info, totalMasteryLevel)
 
+// NAME: masteryInfoHeaders(table)
+// PURPOSE: Add the headers into the table displaying the summoner's champion mastery data
+// PARAMETERS: table - The table that would display a summoner's champion mastery data
 function masteryInfoHeaders(table){
     let headers = ["", "Champion", "Mastery Level", "Mastery Points", "Chest Obtained", "Last Date Played", "Mastery Progress"];
     let header = table.createTHead();
@@ -74,19 +89,22 @@ function masteryInfoHeaders(table){
     for(let i = 0; i < headers.length; i++){
         row.insertCell(i).innerHTML = headers[i];
     }
-}
+} // End masteryInfoHeaders(table)
 
-function masteryInfoTable(info, totalMastery){
+
+// NAME: masteryInfoTable(info, totalMasteryLevel)
+// PURPOSE: Create the Table that would display a summoner's champion mastery data
+// PARAMETERS: info - A multidimensional array that contains the summoner's
+//                   mastery data, organized for the table to display
+//             totalMasteryLevel - The total mastery level of the summoner
+function masteryInfoTable(info, totalMasteryLevel){
     let table = document.createElement("Table");
-    table.id = "dataTable";
-    table.style.textAlign = 'center';
-    table.style.border = '1px solid black';
-    table.style.backgroundColor = '#13008B'; // Table background
-    table.style.color = 'white'; // Text color
-    table.cellPadding = '10 px';
+    
+    table.id = "dataTable"; // To identify table in the next search and remove it
+    table.cellPadding = '10 px'; // Give the cells some padding
 
-    masteryInfo(table, info, totalMastery);
-    masteryInfoHeaders(table);
+    masteryInfo(table, info, totalMasteryLevel); // Add all the data to the table
+    masteryInfoHeaders(table); // Add all the headers to the table
 
     document.body.append(table); // Display the data
     // Keep the table at the center of the page
@@ -95,15 +113,20 @@ function masteryInfoTable(info, totalMastery){
     }
     centerTable();
     window.addEventListener('resize', centerTable);
-}
+} // End masteryInfoTable(info, totalMasteryLevel)
 
+// NAME: formatedChampionMastery(champMastery, findByKey)
+// PURPOSE: Create a multidimensional array that contains all of a summoner's champion mastery
+// PARAMETERS: champMastery - json file from the Riot Games API that contains a player's champion mastery data
+//             findByKey - Method of identifying champions by using champion ID to retrieve name
+// RETURN: Multidimensional array that contains all of a summoner's champion mastery data
 function formatedChampionMastery(champMastery, findByKey){
     champInfo = [];
     champMastery.forEach(champ => {
         champName = findByKey(champ.championId)[1].name;
-        champLevel = champ.championLevel;
-        champPoints = champ.championPoints;
-        chestObtained = champ.chestGranted;
+        champLevel = champ.championLevel; // Champion mastery level
+        champPoints = champ.championPoints; // Champion mastery points
+        chestObtained = champ.chestGranted; // Chest obtained on champ
         if(chestObtained){
             chestObtained = "Earned";
         }else{
@@ -127,8 +150,13 @@ function formatedChampionMastery(champMastery, findByKey){
         // Store champion Id so that it may be used to locate champion portait
     });
     return champInfo;
-}
+} // End formatedChampionMastery(champMastery, findByKey)
 
+// NAME: champIcons(champName, champId)
+// PURPOSE: Retrieve a champion's portait using its champion ID, and a champion's Riot Games Official Information URL
+// PARAMETERS: champName - The champion's name, used to retrieve a champion's Riot Games Official Information URL
+//             champID - The champion's ID, used to retrieve a champion's portait
+// RETURN: Portait of the given champion, which can be clicked on and open the Riot Games Official Information page for that champion
 function champIcons(champName, champId){
     let champPortait = new Image();
     champPortait.src = "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/" + champId + ".png";
@@ -140,8 +168,12 @@ function champIcons(champName, champId){
         window.open("https://www.leagueoflegends.com/en-us/champions/" + champLink + "/", "_blank");
     }
     return champPortait;
-}
+} // End champIcons(champName, champId)
 
+// NAME: timeSinceStart(gameStart)
+// PURPOSE: Check how long a live game has been going
+// PARAMETERS: gameStart - The time a game started at
+// RETURN: The duration of the game in the format: minmin:secsec
 function timeSinceStart(gameStart){
     let timeMs = Date.now() - gameStart;
     let min = Math.floor(timeMs / 60000)
@@ -149,8 +181,13 @@ function timeSinceStart(gameStart){
     if(sec < 10)
         return min + ":0" + sec;
     return min + ":" + sec;
-}
+} // End timeSinceStart(gameStart)
 
+// NAME: liveGameStats(table, gameStart, gameMode)
+// PURPOSE: Place the stats of a live game onto the table
+// PARAMETERS: table - The table that displays live game information
+//             gameStart - The time a game started at
+//             gameMode - The game mode being played
 function liveGameStats(table, gameStart, gameMode){
     let gameStats = table.insertRow();
     gameStats.insertCell(0).innerHTML = "";
@@ -160,9 +197,20 @@ function liveGameStats(table, gameStart, gameMode){
     gameStats.insertCell(4).innerHTML = "";
     gameStats.insertCell(5).innerHTML = "Mode:";
     gameStats.insertCell(6).innerHTML = gameMode;
-}
+} // End liveGameStats(table, gameStart, gameMode)
 
+// NAME: liveGameInfo(table, teamOne, teamTwo, teamOneBans, teamTwoBans)
+// PURPOSE: Fill in the information of an ongoing game
+// PARAMETERS: table - The table that displays live game information
+//             teamOne - The first team in the game
+//             teamTwo - The second team in the game
+//             teamOneBans - The champions that teamOne bans in champion select
+//             teamTwoBans - The champions that teamTwo bans in champion select
 function liveGameInfo(table, teamOne, teamTwo, teamOneBans, teamTwoBans){
+    // Team array format
+    // SummonerName | Summoner Id | Champion Name | Champion ID
+    // Banned champ array format
+    // Champion Name | Champion ID | Turn Pick
     for(let i = 0; i < teamOne.length; i++){
         let data = table.insertRow(i);
         champ1 = champIcons(teamOne[i][2], teamOne[i][3]);
@@ -180,21 +228,22 @@ function liveGameInfo(table, teamOne, teamTwo, teamOneBans, teamTwoBans){
         if(i % 2 != 0)
             data.style.backgroundColor = '#00056C';
     }
-}
+} // End liveGameInfo(table, teamOne, teamTwo, teamOneBans, teamTwoBans)
 
+// NAME: liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans)
+// PURPOSE: Create the Table that would display a live game's information
+// PARAMETERS: gameMode - The game mode being played
+//             gameId - The game's ID which can be saved and retrieve data from Riot Games Support for heatmap data
+//             gameStart - The time a game started at
+//             teamOne - The first team in the game
+//             teamTwo - The second team in the game
+//             teamOneBans - The champions that teamOne bans in champion select
+//             teamTwoBans - The champions that teamTwo bans in champion select
 function liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans){
-    // Team array format
-    // SummonerName | Summoner Id | Champion Name | Champion ID
-    // Banned champ array format
-    // Champion Name | Champion ID | Turn Pick
-
     let table = document.createElement("Table");
     table.id = "dataTable";
-    table.style.textAlign = 'center';
-    table.style.border = '1px solid black';
-    table.style.backgroundColor = '#13008B'; // Table background
-    table.style.color = 'white'; // Text color
     table.cellPadding = '10 px';
+
     // Display game stats
     liveGameStats(table, gameStart, gameMode);
     liveGameInfo(table, teamOne, teamTwo, teamOneBans, teamTwoBans);
@@ -207,8 +256,11 @@ function liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOn
     }
     centerTable();
     window.addEventListener('resize', centerTable);
-}
+} // End liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans)
 
+// NAME: liveGameHeaders(table, gameId)
+// PURPOSE: Add the headers into the table that will display live game information
+// PARAMETERS: table - The table that will display the live game information
 function liveGameHeaders(table, gameId){
     let headers = ["Bans", "Pick Order", "Summoner", "Champion", "Champion", "Summoner", "Pick Order", "Bans"];
     let teamHeader = table.createTHead();
@@ -229,19 +281,12 @@ function liveGameHeaders(table, gameId){
     for(let i = 0; i < headers.length; i++){
         row.insertCell(i).innerHTML = headers[i];
     }
-}
+} // End liveGameHeaders(table, gameId)
 
-async function getRanks(id){
-    let url = "https://na1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + id + "?api_key=" + key;
-    try{
-        let rankData = await fetch(url);
-        let rank = await rankData.json();
-        return rank.tier;
-    }catch{
-        return "Unranked";
-    }
-}
-
+// NAME: liveGameDetails(findByKey, gameData)
+// PURPOSE: Create the multidimensional arrays that will hold the live game data for each summoner
+// PARAMETERS: findByKey - Method of identifying champions by using champion ID to retrieve name
+//             gameData - json file from the Riot Games API that contains a live game's data
 function liveGameDetails(findByKey, gameData){
     // Sort game data information
     gameId = gameData.gameId;
@@ -270,38 +315,50 @@ function liveGameDetails(findByKey, gameData){
     if(!tableMade)
         liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans);
     tableMade = true; // There is a data table present that needs to be cleared before loading the next summoner info
-}
+} // End liveGameDetails(findByKey, gameData)
 
-async function checkLiveGame(findByKey, data){
-    let url = "https://na1.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/" + data.id + "?api_key=" + key;
+// NAME: liveGameCheck(findByKey, data)
+// PURPOSE: Check if a player is currently in a game
+// PARAMETERS: findByKey - Method of identifying champions by using champion ID to retrieve name
+//             id - A summoner's encrypted summoner ID
+async function liveGameCheck(findByKey, id){
+    let url = "https://na1.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/" + id + "?api_key=" + key;
     let gameData;
-    let playing = false;
     try{
         let live = await fetch(url);
         gameData= await live.json();
         liveGameDetails(findByKey, gameData);
     }catch{
-        playing = false;
         alert("Player is not currently in a match right now.");
     }
-}
+} // End liveGameCheck(findByKey, data)
 
-async function searchPlayer(findByKey, data){
+// NAME: searchPlayer(findByKey, id)
+// PURPOSE: Fetches a player's champion mastery data, builds a multidimensional array to contain it, and then calls
+//          the masteryInfoTable function to sort and display the information
+// PARAMETERS: findByKey - Method of identifying champions by using champion ID to retrieve name
+//             id - A summoner's encrypted summoner ID
+async function searchPlayer(findByKey, id){
     // Retrieve champion mastery for this summoner
-    let champMastery = await fetchChampMastery(data.id);
-    let fetchTotalMastery = await fetch("https://na1.api.riotgames.com/lol/champion-mastery/v4/scores/by-summoner/" + data.id + "?api_key=" + key);
+    let champMastery = await fetchChampMastery(id);
+    let fetchTotalMastery = await fetch("https://na1.api.riotgames.com/lol/champion-mastery/v4/scores/by-summoner/" + id + "?api_key=" + key);
     let totalMastery = await fetchTotalMastery.json();
     // Create an array to contain all champion info for this summoner
     champInfo = formatedChampionMastery(champMastery, findByKey);
     // Create a table of information from the champ Mastery information
     if(!tableMade)
         masteryInfoTable(champInfo, totalMastery);
-    tableMade = true; // There is a data table present that needs to be cleared before loading the next summoner info
-}
+    tableMade = true; // There is a data table present that needs to be cleared before loading the next table can be displayed
+} // End searchPlayer(findByKey, id)
 
+// NAME: main()
+// PURPOSE: Get all champion data for this version of League of Legends, define a findByKey function that can
+//          identify a champion by their ID, and then retrieve a summoner's data by the Summoner Name input
+//          by the user. Once a valid user is found, display champion mastery data or live game data as requested
+//          by the user
 async function main(){
     // All champion data
-    let championData = await fetch("http://ddragon.leagueoflegends.com/cdn/13.1.1/data/en_US/champion.json");
+    let championData = await fetch(version);
     let champData = await championData.json();
     let findByKey = (matchKey) => Object.entries(champData.data).find(([key, value]) => value.key == matchKey);
 
@@ -310,13 +367,16 @@ async function main(){
 
     // Get general summoner mastery information
     if(playerSearch)
-        searchPlayer(findByKey, data);
+        searchPlayer(findByKey, data.id);
     if(liveGame)
-        checkLiveGame(findByKey, data);
+        liveGameCheck(findByKey, data.id);
     console.log("We've reached the end");
-}
+} // End main()
 
+// NAME: newSearch()
+// PURPOSE: Check if the user wants to search up a summoner's champion mastery
 function newSearch(){
+    // Checks to see if a table has already been displayed, and if so, remove it
     if(tableMade){
         let data = document.getElementById("dataTable");
         data.remove();
@@ -325,9 +385,12 @@ function newSearch(){
     playerSearch = true;
     liveGame = false;
     main();
-}
+} // End newSearch()
 
+// NAME: newLiveGame()
+// PURPOSE: Check if a user wants to search up a summoner's live game
 function newLiveGame(){
+    // Checks to see if a table has already been displayed, and if so, remove it
     if(tableMade){
         let data = document.getElementById("dataTable");
         data.remove();
@@ -336,7 +399,7 @@ function newLiveGame(){
     playerSearch = false;
     liveGame = true;
     main();
-}
+} // End newLiveGame()
 
 // If the user presses enter after inputting a Summoner Name
 let input = document.getElementById("searchName");
