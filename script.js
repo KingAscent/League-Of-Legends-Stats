@@ -1,8 +1,8 @@
-let key = "RGAPI-071df365-6f5a-42fa-a788-0dbc410886b2";
-let tableMade = false;
-let playerSearch = false;
-let liveGame = false;
-let version = "http://ddragon.leagueoflegends.com/cdn/13.1.1/data/en_US/champion.json";
+let key = "RGAPI-071df365-6f5a-42fa-a788-0dbc410886b2"; // Riot Games Developer Key
+let tableMade = false; // Checks to see if a table is currently displayed on screen
+let playerSearch = false; // True if a user wants to see a summoner's champion mastery
+let liveGame = false; // True if a user wants to see a summoner's ongoing game
+let version = "http://ddragon.leagueoflegends.com/cdn/13.1.1/data/en_US/champion.json"; // Version of League of Legends Champions
 
 // NAME: fetchSumByName()
 // PURPOSE: Access Riot Games API and retrieve a summoner name's information
@@ -99,14 +99,13 @@ function masteryInfoHeaders(table){
 //             totalMasteryLevel - The total mastery level of the summoner
 function masteryInfoTable(info, totalMasteryLevel){
     let table = document.createElement("Table");
-    
     table.id = "dataTable"; // To identify table in the next search and remove it
     table.cellPadding = '10 px'; // Give the cells some padding
 
     masteryInfo(table, info, totalMasteryLevel); // Add all the data to the table
     masteryInfoHeaders(table); // Add all the headers to the table
-
     document.body.append(table); // Display the data
+
     // Keep the table at the center of the page
     let centerTable = () => {
         table.style.margin = "auto";
@@ -244,12 +243,11 @@ function liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOn
     table.id = "dataTable";
     table.cellPadding = '10 px';
 
-    // Display game stats
-    liveGameStats(table, gameStart, gameMode);
-    liveGameInfo(table, teamOne, teamTwo, teamOneBans, teamTwoBans);
-    liveGameHeaders(table, gameId);
-
+    liveGameStats(table, gameStart, gameMode); // Add all the live game stat labels
+    liveGameInfo(table, teamOne, teamTwo, teamOneBans, teamTwoBans); // Add all the data to the table
+    liveGameHeaders(table, gameId); // Add all the headers to the table
     document.body.append(table); // Display the data
+
     // Keep the table at the center of the page
     let centerTable = () => {
         table.style.margin = "auto";
@@ -265,7 +263,6 @@ function liveGameHeaders(table, gameId){
     let headers = ["Bans", "Pick Order", "Summoner", "Champion", "Champion", "Summoner", "Pick Order", "Bans"];
     let teamHeader = table.createTHead();
     teams = teamHeader.insertRow();
-    //teams.style.background = "#ffbb00";
     teams.insertCell(0).innerHTML = "Game ID:";
     teams.insertCell(1).innerHTML = gameId;
     teams.insertCell(2).innerHTML = "TEAM 1";
@@ -312,9 +309,10 @@ function liveGameDetails(findByKey, gameData){
         else
             teamTwoBans.push([findByKey(champ.championId)[1].name, champ.championId, champ.pickTurn]);
     });
+    // If there is no table currently displayed, display one with a summoner's live game data
     if(!tableMade)
         liveGameInfoTable(gameMode, gameId, gameStart, teamOne, teamTwo, teamOneBans, teamTwoBans);
-    tableMade = true; // There is a data table present that needs to be cleared before loading the next summoner info
+    tableMade = true; // There is a data table present that needs to be cleared before loading the next table can be displayed
 } // End liveGameDetails(findByKey, gameData)
 
 // NAME: liveGameCheck(findByKey, data)
@@ -345,7 +343,7 @@ async function searchPlayer(findByKey, id){
     let totalMastery = await fetchTotalMastery.json();
     // Create an array to contain all champion info for this summoner
     champInfo = formatedChampionMastery(champMastery, findByKey);
-    // Create a table of information from the champ Mastery information
+    // If there is no table currently displayed, display one with a summoner's champion mastery data
     if(!tableMade)
         masteryInfoTable(champInfo, totalMastery);
     tableMade = true; // There is a data table present that needs to be cleared before loading the next table can be displayed
