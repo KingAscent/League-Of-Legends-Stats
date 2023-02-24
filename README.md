@@ -1,6 +1,8 @@
 # League-Of-Legends-Stats
 View the champion mastery progress or the live game stats of a summoner on the League of Legends North American server.
 
+<img src="https://raw.githubusercontent.com/KingAscent/League-Of-Legends-Stats/main/src/League%20of%20Legends%20Stats%20Webpage%20Preview.png">
+
 **Instructions**
 
 - Input a summoner name to look up (E.g. Sayo) and click search, or live game to see if they are currently playing a match.
