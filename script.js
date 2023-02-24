@@ -368,7 +368,6 @@ async function main(){
         searchPlayer(findByKey, data.id);
     if(liveGame)
         liveGameCheck(findByKey, data.id);
-    console.log("We've reached the end");
 } // End main()
 
 // NAME: newSearch()
