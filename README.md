@@ -10,4 +10,4 @@ This application is not endorsed by Riot Games and does not reflect the views or
 
 This application is not endorsed by CommunityDragon and does not reflect the views or opinions of CommunityDragon or anyone officially involved with managing communitydragon.org.
 
-This application was created under Riot Games' "Legal Jibber Jabber" and uses assets owned by Riot Games. 
+This application was created under Riot Games' "[Legal Jibber Jabber](https://www.riotgames.com/en/legal)" and uses assets owned by Riot Games. 
