@@ -1,3 +1,7 @@
+/*
+    This is no longer operational due to the new Riot Games name change implemented. Will update in the future.
+ */
+
 let key = "RGAPI-a486416d-27fa-45d3-ab41-b75c70d4655a"; // Riot Games Developer Key
 let tableMade = false; // Checks to see if a table is currently displayed on screen
 let playerSearch = false; // True if a user wants to see a summoner's champion mastery
