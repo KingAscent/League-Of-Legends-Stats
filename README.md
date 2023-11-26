@@ -1,6 +1,7 @@
 # League-Of-Legends-Stats
 View the champion mastery progress or the live game stats of a summoner on the League of Legends North American server.
 
+**THIS IS CURRENTLY INACTIVE DUE TO CHANGES IN THE RIOT API. THIS WILL BE FUNCTIONAL IN THE NEAR FUTURE.**
 <img src="https://raw.githubusercontent.com/KingAscent/League-Of-Legends-Stats/main/src/League%20of%20Legends%20Stats%20Webpage%20Preview.png">
 
 **Instructions**
