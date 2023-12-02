@@ -6,7 +6,7 @@ let key = "RGAPI-a486416d-27fa-45d3-ab41-b75c70d4655a"; // Riot Games Developer 
 let tableMade = false; // Checks to see if a table is currently displayed on screen
 let playerSearch = false; // True if a user wants to see a summoner's champion mastery
 let liveGame = false; // True if a user wants to see a summoner's ongoing game
-let version = "https://ddragon.leagueoflegends.com/cdn/13.24.1/data/en_US/champion.json"; // Version of League of Legends Champions
+let version = "https://ddragon.leagueoflegends.com/cdn/13.25.1/data/en_US/champion.json"; // Version of League of Legends Champions
 
 // NAME: fetchSumByName()
 // PURPOSE: Access Riot Games API and retrieve a summoner name's information
