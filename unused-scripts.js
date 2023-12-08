@@ -1,3 +1,7 @@
+/*
+    None of these are functional or reusable. 
+*/
+
 async function getRanks(id){
     let url = "https://na1.api.riotgames.com/lol/league/v4/entries/by-summoner/" + id + "?api_key=" + key;
     try{
